@@ -572,7 +572,7 @@ catch(error) {
 
 
 // Find by ID
-router.get('/find-by-id/:id', async (req, res) => {
+router.get('/RM-filter-by-id/:id', async (req, res) => {
   const { id } = req.params;
 
   try {
