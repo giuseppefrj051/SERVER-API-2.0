@@ -570,8 +570,31 @@ catch(error) {
 
 
 
+
+// Find by ID
+router.get('/find-by-id/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const result = await Dbschema.findById(id);
+    let dataJson = {};
+
+    let name = result.Asset.name;
+    let input1 = result.Asset.input1.input[result.Asset.input1.input.length -1];
+    let input2 = result.Asset.input2.input[result.Asset.input2.input.length -1];
+
+    dataJson.name = name;
+    dataJson.input1 = input1;
+    dataJson.input2 = input2;
+    
+
+    res.json(dataJson);
+  } catch (error) {
+    res.status(500).json({ error: 'No Items found' });
+  }
+});
  
- 
+
 
 
 module.exports = router
