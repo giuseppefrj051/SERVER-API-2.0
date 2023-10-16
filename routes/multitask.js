@@ -140,7 +140,7 @@ console.log(req.body);
   //ID VALIDATING
   const exists = await Dbschema.exists({ _id: idPost});
   if (idPost === undefined || idPost.length !== 24){ // VALIDATING ID
-throw new Error ('ERROR ID INVALID')
+throw new Error (`ERROR ID INVALID ==>  ${req.body}`)
   }  
   if(!exists){
   throw new Error ('ERROR ID NOT FOUND')
