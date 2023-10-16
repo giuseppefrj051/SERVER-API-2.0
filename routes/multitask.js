@@ -118,7 +118,7 @@ router.post('/create', validateApiKey, async (req, res) => {
 
 
 
-
+ 
 
 
 ////////////////////////// RM-BOX-UPDATE route DONE WORKING
@@ -127,7 +127,7 @@ router.post('/RM-BOX-UPDATE', async (req, res) => {
 
   try
   { // it might be like this : let idPost = req[0].body.id;
-
+console.log(req.body);
   idPost = req.body.id;
   let analogInput1 = req.body.analogInput1;
   let analogInput2 = req.body.analogInput2;
@@ -537,41 +537,8 @@ catch(Error) {//FIRST CATCH
 
 
 
-//update from our form  
-router.post('/update', async (req, res) => {
 
-try{
-const id = req.body.id;
-const location = req.body.location;
-
-
-//inserting data into DB
-
-try{
-  await Dbschema.updateOne({_id: id}, {$set:{"Asset.location": location}})
-  console.log(`New Location inserted (${location})`);
-} catch(err){
-  console.log(`Db error at ${id} at updating route`);
-}
-
-
-
-
-//res.end();
-res.status(200).send('OK');
-}
-catch(error) {
-  console.error('Error handling POST request:', error);
-  res.status(500).send('Internal Server Error');
-}
-
-});
-
-
-
-
-
-// Find by ID
+// Find by ID   //  https://rm-box-api.cyclic.cloud/multitask/rm-filter-by-id/64ac6f703f2b5c16c3d00061
 router.get('/RM-filter-by-id/:id', async (req, res) => {
   const { id } = req.params;
 
