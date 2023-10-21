@@ -118,166 +118,6 @@ router.post('/create', validateApiKey, async (req, res) => {
 
 
 
- 
-
-
-////////////////////////// RM-BOX-UPDATE route DONE WORKING
-
-router.post('/RM-BOX-UPDATE', async (req, res) => {
-
-  try
-  { // it might be like this : let idPost = req[0].body.id;
-console.log(req.body);
-  idPost = req.body.id;
-  let analogInput1 = req.body.analogInput1;
-  let analogInput2 = req.body.analogInput2;
-  let analogInput3 = req.body.analogInput3;
-  let input1 = req.body.input1;
-  let input2 = req.body.input2;
- 
-
-//DATA INCOMING AND SAVED TO DB
-  //ID VALIDATING
-  const exists = await Dbschema.exists({ _id: idPost});
-  if (idPost === undefined || idPost.length !== 24){ // VALIDATING ID
-throw new Error (`ERROR ID INVALID ==>  ${req.body}`)
-  }  
-  if(!exists){
-  throw new Error ('ERROR ID NOT FOUND')
-  }
-
-
-  if(analogInput1 !== undefined){
-    if(typeof analogInput1 !== "number"){
-      analogInput1 = Number(analogInput1);
-      if(isNaN(analogInput1) === true){
-        throw new Error('analogInput1 is not a number')
-      }
-    }
-    try{
-      localdate();
-    await Dbschema.updateOne({_id: idPost}, 
-    {$push:{"Asset.analogInput1.analogInput": analogInput1, "Asset.analogInput1.updated": isoDateTime}})
-    }
-    catch(err){
-      throw new Error('analogInput1 ERROR updating to DB')
-    }
-  }
-  
-  if(analogInput2 !== undefined){
-    if(typeof analogInput2 !== "number"){
-      analogInput2 = Number(analogInput2);
-      if(isNaN(analogInput2) === true){
-        throw new Error('analogInput2 is not a number')
-      }
-    }
-    try{
-      localdate();
-    await Dbschema.updateOne({_id: idPost}, 
-    {$push:{"Asset.analogInput2.analogInput": analogInput2, "Asset.analogInput2.updated": isoDateTime}})
-    }
-    catch(err){
-      throw new Error('analogInput2 ERROR updating to DB')
-    }
-  }
-
-  if(analogInput3 !== undefined){
-    if(typeof analogInput3 !== "number"){
-      analogInput3 = Number(analogInput3);
-      if(isNaN(analogInput3) === true){
-        throw new Error('analogInput3 is not a number')
-      }
-    }
-    try{
-      localdate();
-    await Dbschema.updateOne({_id: idPost}, 
-    {$push:{"Asset.analogInput3.analogInput": analogInput3, "Asset.analogInput3.updated": isoDateTime}})
-    }
-    catch(err){
-      throw new Error('analogInput3 ERROR updating to DB')
-    }
-  }
-
-  if(input1 !== undefined){
-    if(input1 instanceof Boolean || typeof input1 === 'boolean'){
-      try{
-        localdate();
-      await Dbschema.updateOne({_id: idPost}, 
-        {$push:{"Asset.input1.input": input1, "Asset.input1.updated": isoDateTime}})
-      }
-      catch(err){
-        throw new Error('input1 ERROR updating to DB')
-      }
-          
-  }
-  else{throw new Error('input1 is not a boolean');}
-  }
-
-  if(input2 !== undefined){
-    if(input2 instanceof Boolean || typeof input2 === 'boolean'){
-      try{
-        localdate();
-      await Dbschema.updateOne({_id: idPost}, 
-        {$push:{"Asset.input2.input": input2, "Asset.input2.updated": isoDateTime}})
-      }
-      catch(err){
-        throw new Error('input2 ERROR updating to DB')
-      }
-          
-  }
-  else{throw new Error('input2 is not a boolean');}
-  }
-
-
-//DATA OUTGOING TO RM-BOX LATESTED 
-  try{
-    let updatedData = await Dbschema.findById(idPost).exec();
-    updatedData = updatedData.Asset
-    await Dbschema.updateOne({_id: idPost}, {$set:{"Asset.errors": false}});
-    res.status(200).json(updatedData);
-    console.log(`Info updated from RM-BOX ID=  ${idPost}`)
-  }
-  catch(err){
-    throw new Error('ERROR AT RESPONSE SCRIPT')
-  }
-
-  
-  }
-  catch(Error) {
-    console.error(`Error handling POST request: => ${Error}`);
-                    try{//update error status
-                      await Dbschema.updateOne({_id: idPost}, {$set:{"Asset.errors": true}});
-                    }
-                    catch(err){
-                      //email to notify the error
-                      console.error(`Sending Email due no updating error status`);
-
-                           // Compose email
-                      const mailOptions = {
-                        from: process.env.EMAIL_USER,
-                        to: process.env.EMAIL_TO, 
-                        subject: 'Your Server API Info',
-                        text: `Error on ID = ${idPost} trying to send the error status to the DB, the error is:  ${Error}`
-                    };
-
-                    // Send email
-                    transporter.sendMail(mailOptions, function(error, info){
-                        if (error) {
-                        console.log(error);
-                        } else {
-                        console.log('error status Email sent: ' + info.response);
-                        }
-                    });
-                    }
-    res.status(500).send(`Error handling POST request: => ${Error}`);
-  }
-  
-  }); 
-
-///////////////////////// RM-BOX-UPDATE ends
-
-
-
 //  FORM ROUTE
 
 router.post('/FORM-RM-BOX-UPDATE', async (req, res) => {
@@ -561,6 +401,234 @@ router.get('/RM-filter-by-id/:id', async (req, res) => {
   }
 });
  
+
+// RM-BOX-UPDATE route DONE WORKING
+
+router.post('/RM-BOX-UPDATE', async (req, res) => {
+
+  try
+  { // it might be like this : let idPost = req[0].body.id;
+  console.log(req.body);
+
+  idPost = req.body.id;
+  let insertCount = {};
+  let analogInput1 = req.body.analogInput1;
+  let analogInput2 = req.body.analogInput2;
+  let analogInput3 = req.body.analogInput3;
+  let input1 = req.body.input1;
+  let input2 = req.body.input2;
+
+  let output1 = req.body.output1;
+  let output2 = req.body.output2;
+  let status = req.body.status;
+ 
+
+//DATA INCOMING AND SAVED TO DB
+  //ID VALIDATING
+  const exists = await Dbschema.exists({ _id: idPost});
+  if (idPost === undefined || idPost.length !== 24){ // VALIDATING ID
+throw new Error (`ERROR ID INVALID ==>  ${req.body}`)
+  }  
+  if(!exists){
+  throw new Error ('ERROR ID NOT FOUND')
+  }
+
+
+  if(analogInput1 !== undefined){
+    if(typeof analogInput1 !== "number"){
+      analogInput1 = Number(analogInput1);
+      if(isNaN(analogInput1) === true){
+        throw new Error('analogInput1 is not a number')
+      }
+    }
+    try{
+      localdate();
+    await Dbschema.updateOne({_id: idPost}, 
+    {$push:{"Asset.analogInput1.analogInput": analogInput1, "Asset.analogInput1.updated": isoDateTime}})
+    
+    insertCount.analogInput1 = analogInput1;
+    }
+    catch(err){
+      throw new Error('analogInput1 ERROR updating to DB')
+    }
+  }
+  
+  if(analogInput2 !== undefined){
+    if(typeof analogInput2 !== "number"){
+      analogInput2 = Number(analogInput2);
+      if(isNaN(analogInput2) === true){
+        throw new Error('analogInput2 is not a number')
+      }
+    }
+    try{
+      localdate();
+    await Dbschema.updateOne({_id: idPost}, 
+    {$push:{"Asset.analogInput2.analogInput": analogInput2, "Asset.analogInput2.updated": isoDateTime}})
+    insertCount.analogInput2 = analogInput2;
+    }
+    catch(err){
+      throw new Error('analogInput2 ERROR updating to DB')
+    }
+  }
+
+  if(analogInput3 !== undefined){
+    if(typeof analogInput3 !== "number"){
+      analogInput3 = Number(analogInput3);
+      if(isNaN(analogInput3) === true){
+        throw new Error('analogInput3 is not a number')
+      }
+    }
+    try{
+      localdate();
+    await Dbschema.updateOne({_id: idPost}, 
+    {$push:{"Asset.analogInput3.analogInput": analogInput3, "Asset.analogInput3.updated": isoDateTime}})
+    insertCount.analogInput3 = analogInput3;
+    }
+    catch(err){
+      throw new Error('analogInput3 ERROR updating to DB')
+    }
+  }
+
+  if(input1 !== undefined){
+    if(input1 instanceof Boolean || typeof input1 === 'boolean'){
+      try{
+        localdate();
+      await Dbschema.updateOne({_id: idPost}, 
+        {$push:{"Asset.input1.input": input1, "Asset.input1.updated": isoDateTime}})
+        insertCount.input1 = input1;
+      }
+      catch(err){
+        throw new Error('input1 ERROR updating to DB')
+      }
+          
+  }
+  else{throw new Error('input1 is not a boolean');}
+  }
+
+  if(input2 !== undefined){
+    if(input2 instanceof Boolean || typeof input2 === 'boolean'){
+      try{
+        localdate();
+      await Dbschema.updateOne({_id: idPost}, 
+        {$push:{"Asset.input2.input": input2, "Asset.input2.updated": isoDateTime}})
+        insertCount.input2 = input2;
+      }
+      catch(err){
+        throw new Error('input2 ERROR updating to DB')
+      }
+          
+  }
+  else{throw new Error('input2 is not a boolean');}
+  }
+
+
+
+    if(output1 !== undefined){
+    if(output1 instanceof Boolean || typeof output1 === 'boolean'){
+      try{
+        localdate();
+      await Dbschema.updateOne({_id: idPost}, 
+        {$push:{"Asset.output1.output": output1, "Asset.output1.updated": isoDateTime}})
+        insertCount.output1 = output1;
+      }
+      catch(err){
+        throw new Error('output1 ERROR updating to DB')
+      }
+          
+  }
+  else{throw new Error('output1 is not a boolean');}
+  }
+
+
+  if(output2 !== undefined){
+    if(output2 instanceof Boolean || typeof output2 === 'boolean'){
+      try{
+        localdate();
+      await Dbschema.updateOne({_id: idPost}, 
+        {$push:{"Asset.output2.output": output2, "Asset.output2.updated": isoDateTime}})
+        insertCount.output2 = output2;
+      }
+      catch(err){
+        throw new Error('output2 ERROR updating to DB')
+      }
+          
+  }
+  else{throw new Error('output2 is not a boolean');}
+  }
+
+
+
+  if(status !== undefined){
+    if(status instanceof Boolean || typeof status === 'boolean'){
+      try{
+      await Dbschema.updateOne({_id: idPost}, 
+        {$set:{"Asset.status": status}});
+
+        insertCount.status = status;
+      }
+      catch(err){
+        throw new Error('status ERROR updating to DB')
+      }
+          
+  }
+  else{throw new Error('status is not a boolean');}
+  }
+
+
+//DATA OUTGOING TO RM-BOX LATESTED OPTIONAL 
+/*
+  try{
+    let updatedData = await Dbschema.findById(idPost).exec();
+    updatedData = updatedData.Asset
+    await Dbschema.updateOne({_id: idPost}, {$set:{"Asset.errors": false}});
+    res.status(200).json(updatedData);
+    console.log(`Info updated from RM-BOX ID=  ${idPost}`)
+  }
+  catch(err){
+    throw new Error('ERROR AT RESPONSE SCRIPT')
+  }*/
+ 
+  if (Object.keys(insertCount).length === 0) {
+    console.log("insertCount is empty");
+    res.status(200).json("No Data updated");
+  }
+  else {res.status(200).json(insertCount);}
+
+
+  
+  
+  }
+  catch(Error) {
+    console.error(`Error handling POST request: => ${Error}`);
+                    try{//update error status
+                      await Dbschema.updateOne({_id: idPost}, {$set:{"Asset.errors": true}});
+                    }
+                    catch(err){
+                      //email to notify the error
+                      console.error(`Sending Email due no updating error status`);
+
+                           // Compose email
+                      const mailOptions = {
+                        from: process.env.EMAIL_USER,
+                        to: process.env.EMAIL_TO, 
+                        subject: 'Your Server API Info',
+                        text: `Error on ID = ${idPost} trying to send the error status to the DB, the error is:  ${Error}`
+                    };
+
+                    // Send email
+                    transporter.sendMail(mailOptions, function(error, info){
+                        if (error) {
+                        console.log(error);
+                        } else {
+                        console.log('error status Email sent: ' + info.response);
+                        }
+                    });
+                    }
+    res.status(500).send(`Error handling POST request: => ${Error}`);
+  }
+  
+  }); 
+
 
 
 
