@@ -387,17 +387,26 @@ router.get('/RM-filter-by-id/:id', async (req, res) => {
     let dataJson = {};
 
     let name = result.Asset.name;
+    let status = result.Asset.status;
     let input1 = result.Asset.input1.input[result.Asset.input1.input.length -1];
     let input2 = result.Asset.input2.input[result.Asset.input2.input.length -1];
-
+    let output1 = result.Asset.output1.output[result.Asset.output1.output.length -1];
+    let output2 = result.Asset.output2.output[result.Asset.output2.output.length -1];
+    localdate();
+    dataJson.lastServerSync = isoDateTime;
     dataJson.name = name;
+    dataJson.status = status;
     dataJson.input1 = input1;
     dataJson.input2 = input2;
+    dataJson.output1 = output1;
+    dataJson.output2 = output2;
     
 
     res.json(dataJson);
+    console.log(dataJson);
   } catch (error) {
     res.status(500).json({ error: 'No Items found' });
+    console.log("Error syncing BOX or wrong ID");
   }
 });
  
@@ -590,7 +599,7 @@ throw new Error (`ERROR ID INVALID ==>  ${req.body}`)
  
   if (Object.keys(insertCount).length === 0) {
     console.log("insertCount is empty");
-    res.status(200).json("No Data updated");
+    res.status(204).json("No Data updated");
   }
   else {res.status(200).json(insertCount);}
 
